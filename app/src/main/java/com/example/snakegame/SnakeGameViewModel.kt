@@ -1,5 +1,6 @@
 package com.example.snakegame
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
@@ -41,11 +42,35 @@ class SnakeGameViewModel :ViewModel()  {
                 SnakeGameEvent.ResetGame -> {
                     _state.value = SnakeGameState()
                 }
-                is SnakeGameEvent.UpdateDirection -> {}
+                is SnakeGameEvent.UpdateDirection -> {
+                    updateDirection(event.offset, event.canvasWidth)
+                }
             }
         }
 
-        private fun updateGame(currentGame: SnakeGameState): SnakeGameState {
+    private fun updateDirection(offset: Offset, canvasWidth: Int) {
+        if(!state.value.isGameOver){
+            val cellSize = canvasWidth / state.value.xAxisGridSize
+            val tapX = (offset.x / cellSize).toInt()
+            val tapY = (offset.y / cellSize).toInt()
+            val head = state.value.snake.first()
+
+           _state.update {
+              it.copy(
+                  direction = when(state.value.direction) {
+                      Direction.Up, Direction.Down -> {
+                          if (tapX < head.x) Direction.Left else Direction.Right
+                      }
+                      Direction.Left, Direction.Right -> {
+                          if (tapY < head.y) Direction.Up else Direction.Down
+                      }
+                  }
+              )
+           }
+        }
+    }
+
+    private fun updateGame(currentGame: SnakeGameState): SnakeGameState {
             if (currentGame.isGameOver) {
                 return currentGame
             }
